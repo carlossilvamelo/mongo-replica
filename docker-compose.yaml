@@ -3,6 +3,8 @@ version: '2'
 services:
   mongodb-primary:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    ports:
+      - 27011:27017
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
       - MONGODB_REPLICA_SET_MODE=primary
@@ -13,6 +15,8 @@ services:
 
   mongodb-secondary:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    ports:
+      - 27012:27017
     depends_on:
       - mongodb-primary
     environment:
@@ -24,6 +28,8 @@ services:
 
   mongodb-arbiter:
     image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    ports:
+      - 27013:27017
     depends_on:
       - mongodb-primary
     environment:
