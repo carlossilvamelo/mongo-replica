@@ -1,32 +1,38 @@
-version: "3"
+version: '2'
+
 services:
-  mongo1:
-    hostname: mongo1
-    container_name: localmongo1
-    image: mongo:4.0-xenial
-    expose:
-    - 27017
-    ports:
-      - 27011:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-  mongo2:
-    hostname: mongo2
-    container_name: localmongo2
-    image: mongo:4.0-xenial
-    expose:
-    - 27017
-    ports:
-    - 27012:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-  mongo3:
-    hostname: mongo3
-    container_name: localmongo3
-    image: mongo:4.0-xenial
-    expose:
-    - 27017
-    ports:
-    - 27013:27017
-    restart: always
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+  mongodb-primary:
+    image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-primary
+      - MONGODB_REPLICA_SET_MODE=primary
+      - MONGODB_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+    volumes:
+      - 'mongodb_master_data:/bitnami/mongodb'
+
+  mongodb-secondary:
+    image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-secondary
+      - MONGODB_REPLICA_SET_MODE=secondary
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+
+  mongodb-arbiter:
+    image: 'docker.io/bitnami/mongodb:4.4-debian-10'
+    depends_on:
+      - mongodb-primary
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongodb-arbiter
+      - MONGODB_REPLICA_SET_MODE=arbiter
+      - MONGODB_INITIAL_PRIMARY_HOST=mongodb-primary
+      - MONGODB_INITIAL_PRIMARY_ROOT_PASSWORD=password123
+      - MONGODB_REPLICA_SET_KEY=replicasetkey123
+
+volumes:
+  mongodb_master_data:
+    driver: local
